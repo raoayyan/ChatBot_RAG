@@ -15,16 +15,23 @@ export async function GET(req, res) {
 
 
   const url = new URL(req.url); // Replace with your base URL if needed
+  
   const searchParams = new URLSearchParams(url.search);
-  const youtubelink = searchParams.get("youtubelink");
  
+  const youtubelink = searchParams.get("youtubelink");
+  
+
   try {
+    console.log("Before yt transcription")
     const transcript = await YoutubeTranscript.fetchTranscript(youtubelink);
+    console.log("after yt transcription: ",transcript)
+    console.log("Before all Text")
     const allText = transcript.map((item) => item.text).join(" ");
-    
+    console.log("after all Text: ",allText)
+
     const pinecone = initPinecone();
     const index = pinecone.Index("ai-chat-bot"); // Replace with your Pinecone index name
-
+    console.log("pinecone index: ",index);
     // Process and store the content
     await processAndStoreContent(index, allText);
    
