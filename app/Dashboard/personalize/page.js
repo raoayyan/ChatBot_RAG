@@ -236,7 +236,7 @@ export default function Dashboard() {
   // };
 
   return (
-    // <AuthLayout>
+    <AuthLayout>
       <div className="bg-grey-100 h-screen flex flex-col max-w-lg mx-auto p-3 border-2">
         <div className="bg-black p-4 text-white flex justify-between items-center">
           <button id="login" className="hover:bg-blue-400 rounded-md p-1">
@@ -372,6 +372,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-   
+    </AuthLayout>
   );
 }
