@@ -13,22 +13,17 @@ export async function GET(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-
   const url = new URL(req.url); // Replace with your base URL if needed
-  
   const searchParams = new URLSearchParams(url.search);
- 
   const youtubelink = searchParams.get("youtubelink");
-  
-
+  console.log("url is",youtubelink)
   try {
-    console.log("Before yt transcription")
-    const transcript = await YoutubeTranscript.fetchTranscript(youtubelink);
-    console.log("after yt transcription: ",transcript)
     
+    const transcript = await YoutubeTranscript.fetchTranscript(youtubelink);
+    console.log("Trans",transcript);
+
     const allText = transcript.map((item) => item.text).join(" ");
-
-
+   
     const pinecone = initPinecone();
     const index = pinecone.Index("ai-chat-bot"); // Replace with your Pinecone index name
   

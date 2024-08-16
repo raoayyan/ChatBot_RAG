@@ -26,6 +26,7 @@ export const processAndStoreContent = async (index, content) => {
 //this way if order of storing embedding is not important we can reduce a lot of time my doing Promise.all it will execute all in parallel thus reduce time
   await Promise.all(chunks.map(async (chunk, i) => {
     const embedding = await fetchEmbeddings(chunk.pageContent);
+   
     const metadata = {
       text: chunk.pageContent,
     };
