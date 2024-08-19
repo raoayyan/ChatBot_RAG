@@ -12,7 +12,7 @@ export default function Dashboard() {
     {
       role: "assistant",
       content:
-        "Hi, I'm Personal Chat Agent, Please first provide the youtube video link and then you may ask anthing related!!",
+        "Hi, I'm Personal Chat Agent, Sorry!! Currently there is issue with youtube transcript npm package in production.",
     },
   ]);
 

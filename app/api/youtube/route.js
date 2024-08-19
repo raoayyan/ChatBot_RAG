@@ -1,6 +1,6 @@
 // api/youtube/route.js
-// import { YoutubeTranscript } from "youtube-transcript";
-import { fetchTranscript } from "@/utils/youtube-transcript";
+import { YoutubeTranscript } from "youtube-transcript";
+// import { fetchTranscript } from "@/utils/youtube-transcript";
 import { URLSearchParams } from "url";
 import { NextResponse } from "next/server";
 
@@ -19,15 +19,15 @@ export async function GET(req, res) {
   const youtubelink = searchParams.get("youtubelink");
 
   try {
-    const videoId = extractVideoId(youtubelink);
-    console.log("vid",videoId)
-    if (!videoId) {
-      return new NextResponse("Invalid YouTube URL", { status: 400 });
-    }
+    // const videoId = extractVideoId(youtubelink);
+    // console.log("vid",videoId)
+    // if (!videoId) {
+    //   return new NextResponse("Invalid YouTube URL", { status: 400 });
+    // }
 
    
-    // const transcript = await YoutubeTranscript.fetchTranscript(youtubelink);
-    const transcript = await fetchTranscript(videoId);
+    const transcript = await YoutubeTranscript.fetchTranscript(youtubelink);
+    // const transcript = await fetchTranscript(videoId);
     
     const allText = transcript.map((item) => item.text).join(" ");
     
@@ -43,9 +43,9 @@ export async function GET(req, res) {
       status: 500,
     });
   }
-  function extractVideoId(url) {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  }
+  // function extractVideoId(url) {
+  //   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  //   const match = url.match(regExp);
+  //   return (match && match[2].length === 11) ? match[2] : null;
+  // }
 }
