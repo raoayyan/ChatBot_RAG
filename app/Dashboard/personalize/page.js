@@ -11,7 +11,8 @@ export default function Dashboard() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Hi, I'm Personal Chat Agent, Please first provide the youtube video link and then you may ask anthing related!!",
+      content:
+        "Hi, I'm Personal Chat Agent, Please first provide the youtube video link and then you may ask anthing related!!",
     },
   ]);
 
@@ -20,9 +21,14 @@ export default function Dashboard() {
   const [youtubeLink, setYoutubeLink] = useState("");
   const [pinecone, setPinecone] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
- 
-
+  const [isAddingLink, setIsAddingLink] = useState(false);
+  const TypingIndicator = () => (
+    <div className="flex items-center space-x-2 text-gray-400">
+      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+    </div>
+  );
   // const handlePdfUpload = async (event) => {
   //   const file = event.target.files[0];
   //   if (file && file.type === "application/pdf") {
@@ -58,7 +64,7 @@ export default function Dashboard() {
 
   const handleYoutubeLink = async () => {
     if (youtubeLink.trim()) {
-      setIsLoading(true);
+      setIsAddingLink(true);
       try {
         // Fetch transcript from the API route
         const response = await fetch(
@@ -92,7 +98,7 @@ export default function Dashboard() {
         console.error("Error fetching transcript:", error);
         // Handle error here, e.g., display an error message to the user
       } finally {
-        setIsLoading(false);
+        setIsAddingLink(false);
       }
     }
   };
@@ -100,72 +106,70 @@ export default function Dashboard() {
   const sendMessagev1 = async () => {
     if (!message.trim()) return;
 
-    setMessages(prevMessages => [
+    setMessages((prevMessages) => [
       ...prevMessages,
       { role: "user", content: message },
     ]);
     //clear input field
     setMessage("");
-  try {
-    const response = await fetch("/api/pchat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify([...messages, { role: "user", content: message }]),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    // Add a placeholder for the assistant's response
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { role: "assistant", content: "" },
-    ]);
-
-    let accumulatedContent = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      accumulatedContent += chunk;
-      setMessages((prevMessages) => {
-        const newMessages = [...prevMessages];
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (lastMessage.role === "assistant") {
-          return [
-            ...newMessages.slice(0, -1),
-            { ...lastMessage, content: accumulatedContent },
-          ];
-        } else {
-          return [
-            ...newMessages,
-            { role: "assistant", content: accumulatedContent },
-          ];
-        }
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/pchat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([...messages, { role: "user", content: message }]),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      // Add a placeholder for the assistant's response
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", content: "" },
+      ]);
+
+      let accumulatedContent = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedContent += chunk;
+        setMessages((prevMessages) => {
+          const newMessages = [...prevMessages];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage.role === "assistant") {
+            return [
+              ...newMessages.slice(0, -1),
+              { ...lastMessage, content: accumulatedContent },
+            ];
+          } else {
+            return [
+              ...newMessages,
+              { role: "assistant", content: accumulatedContent },
+            ];
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: "assistant",
+          content: "Sorry, there was an error. Please try again.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false); // Set loading to false when the request is complete
     }
-  } catch (error) {
-    console.error("Error:", error);
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      {
-        role: "assistant",
-        content: "Sorry, there was an error. Please try again.",
-      },
-    ]);
-  }
-
-
   };
-
-
-
 
   // const sendMessage = async () => {
   //   if (!message.trim()) return; // Prevent sending empty messages
@@ -302,6 +306,11 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="message assistant">
+              <TypingIndicator />
+            </div>
+          )}
         </div>
 
         <div className="bg-white p-4 flex flex-col">
@@ -310,13 +319,14 @@ export default function Dashboard() {
             <input
               type="text"
               placeholder="Type your message..."
-              className="flex-1 border rounded-l-full px-4 py-2 focus:outline-none"
+              className="flex-1 border rounded-full px-4 py-2 focus:outline-none"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
             <button
               onClick={sendMessagev1}
-              className="bg-blue-500 text-white rounded-r-full p-2 hover:bg-blue-600 focus:outline-none"
+              // disabled={isLoading}
+              className="bg-blue-500 text-white rounded-full p-2 ml-2 hover:bg-blue-600 focus:outline-none"
             >
               <svg
                 width="20px"
@@ -355,18 +365,18 @@ export default function Dashboard() {
                 className="border rounded-l-full px-4 py-2 focus:outline-none"
                 value={youtubeLink}
                 onChange={(e) => setYoutubeLink(e.target.value)}
-                disabled={isLoading}
+                disabled={isAddingLink}
               />
               <button
                 onClick={handleYoutubeLink}
                 className={`text-white rounded-r-full px-4 py-2 focus:outline-none ${
-                  isLoading
+                  isAddingLink 
                     ? "bg-gray-500 cursor-not-allowed"
                     : "bg-red-500 hover:bg-red-600"
                 }`}
                 disabled={isLoading}
               >
-                {isLoading ? "Processing..." : "Add Link"}
+                {isAddingLink ? "Processing..." : "Add Link"}
               </button>
             </div>
           </div>
